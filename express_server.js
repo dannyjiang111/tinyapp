@@ -1,37 +1,9 @@
-const generateRandomString = () => {
-  let randomString = "";
-  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const stringLength = 6;
-  for (let i = 0; i < stringLength; i++) {
-    randomString += characters[Math.floor(Math.random() * characters.length)];
-  }
-  return randomString;
-};
-
-const findEmail = function(email) {
-  for (let user in users) {
-    if (email === users[user].email) {
-      return users[user];
-    }
-  }
-};
-
-const urlsForUser = function(id) {
-  let myURLs = {};
-  for (let key in urlDatabase) {
-    let userID = urlDatabase[key].userID
-      if (id === userID) {
-        myURLs[key] = urlDatabase[key].longURL;
-        return myURLs;
-    }
-  }
-};
-
 // DEPENDENCIES //
 const express = require("express");
 const bodyParser = require("body-parser"); // Helps make data readable
 const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
+const { generateRandomString, getUserByEmail, urlsForUser, } = require("./helpers");
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -167,7 +139,7 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  const userID = findEmail(email, users)
+  const userID = getUserByEmail(email, users)
   if (!email || !password) {
     const templateVars = {
       user: users[req.session.userID],
