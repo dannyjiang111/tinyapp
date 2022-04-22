@@ -69,9 +69,13 @@ const users = {
 };
 
 // GET REQUESTS //
-// Prints out Hello when accessing the root path / 
+// Redirects to url or login page
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  if (req.session.userID) {
+    res.redirect('/urls');
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // Prints out object urlDatabase 
