@@ -86,7 +86,7 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
-// Renders sign up page
+// Renders sign-up page
 app.get("/register", (req, res) => {
   const data = req.cookies["user_id"];
   const user = users[data];
@@ -94,6 +94,14 @@ app.get("/register", (req, res) => {
     user: user,
   };
   res.render("register", templateVars)
+});
+
+// Renders login page
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: users[req.cookies["user"]],
+  }
+  res.render("login", templateVars);
 });
 
 // POST REQUESTS //
