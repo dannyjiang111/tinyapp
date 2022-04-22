@@ -16,6 +16,17 @@ const findEmail = function(email) {
   }
 };
 
+const urlsForUser = function(id) {
+  let myURLs = {};
+  for (let key in urlDatabase) {
+    let userID = urlDatabase[key].userID
+      if (id === userID) {
+        myURLs[key] = urlDatabase[key].longURL;
+        return myURLs;
+    }
+  }
+};
+
 // DEPENDENCIES //
 const express = require("express");
 const bodyParser = require("body-parser"); // Helps make data readable
@@ -30,8 +41,14 @@ app.use(cookieParser());
 
 // VARIABLES //
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
 };
 
 const users = { 
@@ -65,18 +82,35 @@ app.get("/hello", (req, res) => {
 
 // Renders main page 
 app.get("/urls", (req, res) => {
-  const templateVars = { 
-    user: req.cookies["user"],
-    urls: urlDatabase };
-  res.render("urls_index", templateVars);
+  const data = req.cookies["user"];
+  const user = users[data];
+  let myURLs = {};
+
+  for (let key in urlDatabase) {
+    let userID = urlDatabase[key].userID
+    if (req.cookies["user"] === userID) {
+      myURLs[key] = urlDatabase[key].longURL;
+    }
+  }
+   const templateVars = { 
+    user: user,
+    urls: myURLs };
+    res.render("urls_index", templateVars);
 });
 
 // Renders the page with the form 
 app.get("/urls/new", (req, res) => {
+  const data = req.cookies["user"];
+  const user = users[data];
+  const userID = req.cookies["user"];
   const templateVars = {
-    user: req.cookies["user"],
+    user: user,
   }
-  res.render("urls_new", templateVars);
+  if (!userID) {
+    res.redirect("/login?")
+  } else {
+    res.render("urls_new", templateVars);
+  }
 });
 
 // Directs to modified shortURL page with edit 
@@ -90,8 +124,13 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // Redirects any shortURL to it's longURL
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  if (urlDatabase.hasOwnProperty(req.params.shortURL)){
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+    } else {
+      res.send("Page does not exist");
+      return res.status(400);
+  }
 });
 
 // Renders sign-up page
