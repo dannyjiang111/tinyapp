@@ -8,6 +8,14 @@ const generateRandomString = () => {
   return randomString;
 };
 
+const findEmail = function(email) {
+  for (let user in users) {
+    if (email === users[user].email) {
+      return users[user];
+    }
+  }
+};
+
 // DEPENDENCIES //
 const express = require("express");
 const bodyParser = require("body-parser"); // Helps make data readable
@@ -129,8 +137,20 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 // Login route
 app.post("/login", (req, res) => {
-  res.cookie("user", req.body.user);
-  res.redirect("/urls");
+  const email = req.body.email;
+  const password = req.body.password
+  if (!email || !password) {
+    return res.status(400).send("Email and Password required");
+  };
+
+  const user = findEmail(req.body.email)
+
+  if (!user || user.password !== password) {
+    return res.status(400).send("Email or Password incorrect");
+  }
+
+  res.cookie("user_id", user.id);
+  res.redirect("urls");
 });
 
 // Logout route
