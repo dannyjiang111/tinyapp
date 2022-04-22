@@ -58,7 +58,7 @@ app.get("/hello", (req, res) => {
 // Renders main page 
 app.get("/urls", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    user: req.cookies["user"],
     urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
@@ -66,7 +66,7 @@ app.get("/urls", (req, res) => {
 // Renders the page with the form 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: req.cookies["user"],
   }
   res.render("urls_new", templateVars);
 });
@@ -74,7 +74,7 @@ app.get("/urls/new", (req, res) => {
 // Directs to modified shortURL page with edit 
 app.get("/urls/:shortURL", (req, res) => {
   const templateVars = { 
-    username: req.cookies["username"],
+    user: req.cookies["user"],
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
@@ -89,9 +89,9 @@ app.get("/u/:shortURL", (req, res) => {
 // Renders sign up page
 app.get("/register", (req, res) => {
   const data = req.cookies["user_id"];
-  const username = users[data];
+  const user = users[data];
   const templateVars = {
-    username: username,
+    user: user,
   };
   res.render("register", templateVars)
 });
@@ -121,13 +121,13 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 
 // Login route
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
+  res.cookie("user", req.body.user);
   res.redirect("/urls");
 });
 
 // Logout route
 app.post("/logout", (req, res) => {
-  res.clearCookie("username", req.body)
+  res.clearCookie("user", req.body)
   res.redirect("/urls");
 });
 
