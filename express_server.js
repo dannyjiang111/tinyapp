@@ -30,7 +30,7 @@ const urlsForUser = function(id) {
 // DEPENDENCIES //
 const express = require("express");
 const bodyParser = require("body-parser"); // Helps make data readable
-const cookieParser = require("cookie-parser");
+const cookieSession = require("cookie-session");
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
@@ -38,7 +38,10 @@ const PORT = 8080; // default port 8080
 // MIDDLEWARE //
 app.set("view engine", "ejs"); // Tells Express app to use EJS as a templating engine 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
+app.use(cookieSession({
+  name: "user",
+  keys: ['key1', 'key2'],
+}));
 
 // VARIABLES //
 const urlDatabase = {
