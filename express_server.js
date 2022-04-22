@@ -31,6 +31,7 @@ const urlsForUser = function(id) {
 const express = require("express");
 const bodyParser = require("body-parser"); // Helps make data readable
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -135,7 +136,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 // Renders sign-up page
 app.get("/register", (req, res) => {
-  const data = req.cookies["user_id"];
+  const data = req.cookies["user"];
   const user = users[data];
   const templateVars = {
     user: user,
@@ -177,19 +178,19 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 // Login route
 app.post("/login", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password
+  const password = req.body.password;
+  const user = findEmail(req.body.email)
+
   if (!email || !password) {
     return res.status(400).send("Email and Password required");
   };
 
-  const user = findEmail(req.body.email)
-
-  if (!user || user.password !== password) {
+  if (!user || bcrypt.compareSync(password, user.password)) {
     return res.status(400).send("Email or Password incorrect");
   }
 
-  res.cookie("user_id", user.id);
-  res.redirect("urls");
+    res.cookie("user", user.id);
+    res.redirect("urls");
 });
 
 // Logout route
@@ -211,9 +212,10 @@ app.post("/register", (req, res) => {
       return res.status(400).send("Email already registered");
     };
   };
-  const user = { id, email, password,};
+  const hashedPassword = bcrypt.hashSync(req.body.password, 10);
+  const user = { id, email, password: hashedPassword,};
   users[id] = user
-  res.cookie("user_id", id);
+  res.cookie("user", id);
   res.redirect("/urls");
 });
 
