@@ -62,8 +62,10 @@ app.get("/urls/:shortURL", (req, res) => {
 
 // Adds new url to database and redirects to short url page //
 app.post("/urls", (req, res) => {
-  console.log(req.body);  
-  res.send("Ok");         
+  let shortURL = generateRandomString();
+  let longURL = req.body.longURL;
+  urlDatabase[shortURL] = longURL
+  res.redirect("/urls");
 });
 
 // LISTENS TO PORT //
