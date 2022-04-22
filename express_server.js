@@ -26,6 +26,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+};
+
 // GET REQUESTS //
 // Prints out Hello when accessing the root path / 
 app.get("/", (req, res) => {
@@ -73,6 +86,15 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+// Renders sign up page
+app.get("/register", (req, res) => {
+  const data = req.cookies["user_id"];
+  const username = users[data];
+  const templateVars = {
+    username: username,
+  };
+  res.render("register", templateVars)
+});
 
 // POST REQUESTS //
 
@@ -100,6 +122,31 @@ app.post("/urls/:shortURL/edit", (req, res) => {
 // Login route
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
+  res.redirect("/urls");
+});
+
+// Logout route
+app.post("/logout", (req, res) => {
+  res.clearCookie("username", req.body)
+  res.redirect("/urls");
+});
+
+// Sign up for new account while checking for existing accounts
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password) {
+    return res.status(400).send("Email and Password required");
+  };
+  for (let id in users) {
+    if (email === users[id].email) {
+      return res.status(400).send("Email already registered");
+    };
+  };
+  const user = { id, email, password,};
+  users[id] = user
+  res.cookie("user_id", id);
   res.redirect("/urls");
 });
 
