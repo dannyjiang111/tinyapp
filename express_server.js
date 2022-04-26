@@ -35,7 +35,7 @@ const users = {
 // GET REQUESTS //
 // Redirects to url or login page
 app.get("/", (req, res) => {
-  if (req.session.userID) {
+  if (!req.session.userID) {
     res.redirect('/urls');
   } else {
     res.redirect('/login');
@@ -49,10 +49,20 @@ app.get("/urls.json", (req, res) => {
 
 // Renders main page 
 app.get("/urls", (req, res) => {
-  let templateVars = {
-    user: users[req.session.userID],
-    urls: urlsForUser(req.session.userID, urlDatabase) };
-  res.render("urls_index", templateVars);
+  const user_id = req.session.userID;
+  const templateVars = {
+    user: users[user_id],
+    urls: urlsForUser(req.session.userID, urlDatabase) 
+  };
+  if (!user_id) {
+    const templateVars = {
+      user: users[req.session.userID],
+      error: "Please login",
+    };
+    return res.status(400).render("errors", templateVars);
+  } else {
+    res.render("urls_index", templateVars);
+  }
 });
 
 // Renders the page with the form 
@@ -70,12 +80,30 @@ app.get("/urls/new", (req, res) => {
 
 // Directs to modified shortURL page with edit 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = {
-    user: users[req.session.userID],
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL};
+  const shortURL = req.params.shortURL;
+  const user_id = req.session.userID;
+    if (!urlDatabase[shortURL]) {
+      const templateVars = {
+        user: users[user_id],
+        error: "Cannot read property 'longURL' of undefined",
+      };
+      return res.status(400).render("errors", templateVars);
 
-  res.render("urls_show", templateVars);
+    } else if (user_id !== urlDatabase[shortURL].userID) {
+      const templateVars = {
+        user: users[user_id],
+        error: "You are not authorized to see this URL",
+      };
+      return res.status(400).render("errors", templateVars);
+
+    } else {
+      const templateVars = {
+        user: users[user_id],
+        shortURL: shortURL,
+        longURL: urlDatabase[shortURL].longURL
+    };
+    res.render("urls_show", templateVars);
+  }
 });
 
 // Redirects any shortURL to it's longURL
@@ -93,7 +121,11 @@ app.get("/login", (req, res) => {
   const templateVars = {
     user: users[req.session.userID]
   };
-  res.render("login", templateVars);
+  if (templateVars.user) { // change
+    res.redirect("/urls");
+  } else {
+    res.render("login", templateVars); 
+  }
 });
 
 // Renders sign-up page
@@ -101,20 +133,31 @@ app.get("/register", (req, res) => {
   const templateVars = {
     user: users[req.session.userID],
   };
+  if (templateVars.user) { // change
+    res.redirect("/urls");
+  } else {
   res.render("register", templateVars);
+  }
 });
 
 // POST REQUESTS //
 
 // Adds new url to database and redirects to short url page //
 app.post("/urls", (req, res) => {
-  if (req.session.userID) {
+  const user_id = req.session.userID;
+  if (user_id) {
     const shortURL = generateRandomString();
     urlDatabase[shortURL] = {
       longURL: req.body.longURL,
-      userID: req.session.userID
+      userID: user_id
     };
     res.redirect(`/urls/${shortURL}`);
+  } else {
+    const templateVars = {
+      user: users[req.session.userID],
+      error: "Please login to edit URL",
+    };
+    return res.status(400).render("errors", templateVars);
   }
 });
 
@@ -187,7 +230,7 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(req.body.password, 10);
   const user = { id, email, password: hashedPassword,};
   users[id] = user;
-  res.cookie("userID", id);
+  req.session.userID = id; // change 
   res.redirect("/urls");
 });
 
